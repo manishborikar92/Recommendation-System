@@ -1,7 +1,5 @@
-ProjectDevelopmentChatGPT.md
-ai-ml/.pytest_cache
-ai-ml/data
-ai-ml/AI-ML.md
-backend/Backend Prompt.md
-frontend/Frontend Prompt.md
-infrastructure/Infrastructure Prompt.md
+node_modules
+.env
+.venv
+data
+__pycache__
