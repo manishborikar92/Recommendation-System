@@ -58,7 +58,7 @@ const Home = () => {
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white shadow-sm sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-gray-900">Trending Products</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Recommendation System</h1>
           <div className="flex items-center gap-4">
             {userId ? (
               <span className="text-gray-600">Welcome, {username}!</span>
@@ -92,18 +92,49 @@ const Home = () => {
             ))}
           </div>
         ) : (
-          Object.entries(products).map(([category, items]) => (
-            <section key={category} className="mb-12">
-              <h2 className="text-xl font-semibold mb-6 capitalize text-gray-800">
-                {category.replace(/_/g, ' ')}
-              </h2>
-              <ProductGrid 
-                products={items} 
-                onSelect={handleProductClick}
-                isLoggedIn={!!userId}
-              />
-            </section>
-          ))
+          <>
+            {/* Overall Top Products */}
+            {products.overall_top && products.overall_top.length > 0 && (
+              <section key="overall_top" className="mb-12">
+                <h2 className="text-xl font-semibold mb-6 capitalize text-gray-800">
+                  Overall Top Products
+                </h2>
+                <ProductGrid 
+                  products={products.overall_top} 
+                  onSelect={handleProductClick}
+                  isLoggedIn={!!userId}
+                />
+              </section>
+            )}
+
+            {/* Category Top Products */}
+            {products.category_top && Object.entries(products.category_top).map(([category, items]) => (
+              <section key={category} className="mb-12">
+                <h2 className="text-xl font-semibold mb-6 capitalize text-gray-800">
+                  {category.replace(/\|/g, ' > ').replace(/_/g, ' ').replace(/&/g, ' & ')}
+                </h2>
+                <ProductGrid 
+                  products={items} 
+                  onSelect={handleProductClick}
+                  isLoggedIn={!!userId}
+                />
+              </section>
+            ))}
+
+            {/* Similar Products */}
+            {products.similar_products && Object.entries(products.similar_products).map(([category, items]) => (
+              <section key={category} className="mb-12">
+                <h2 className="text-xl font-semibold mb-6 capitalize text-gray-800">
+                  Similar Products in {category.replace(/\|/g, ' > ').replace(/_/g, ' ').replace(/&/g, ' & ')}
+                </h2>
+                <ProductGrid 
+                  products={items} 
+                  onSelect={handleProductClick}
+                  isLoggedIn={!!userId}
+                />
+              </section>
+            ))}
+          </>
         )}
       </main>
 

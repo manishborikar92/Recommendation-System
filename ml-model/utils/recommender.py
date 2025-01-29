@@ -7,6 +7,9 @@ from typing import List, Tuple, Dict
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.feature_extraction.text import TfidfVectorizer
+import logging
+
+logger = logging.getLogger(__name__)
 
 class ProductRecommender:
     def __init__(self):
@@ -86,50 +89,102 @@ class ProductRecommender:
         self.product_features_matrix = np.hstack([text_matrix.toarray(), scaled_numerical])
         self.product_ids = self.data['product_id'].values
     
-    def get_top_products_per_category(self, n: int = 10) -> Dict[str, List[Dict]]:
-        """Retrieve top N products in each category based on a composite score."""
-        if self.data is None:
-            raise ValueError("Data has not been preprocessed yet.")
+    def get_enhanced_product_recommendations(
+        self, 
+        category_limit: int = 10, 
+        products_per_category: int = 10, 
+        overall_limit: int = 20, 
+        similar_products_limit: int = 5
+    ) -> Dict[str, any]:
+        """
+        Enhanced product recommendations with composite scoring and intelligent sampling.
+        """
+        self._validate_parameters(category_limit, products_per_category, overall_limit, similar_products_limit)
         
-        # Features and their weights for composite score
-        features = ['rating', 'rating_count', 'discount_percentage', 'discounted_price']
-        weights = np.array([0.4, 0.3, 0.2, 0.1])
-        
-        # Normalize features
+        if not isinstance(self.data, pd.DataFrame):
+            logger.error("Product data is missing or invalid.")
+            raise ValueError("Product data not available")
+
+        required_features = {'rating', 'rating_count', 'discount_percentage', 'discounted_price'}
+        missing_features = required_features - set(self.data.columns)
+        if missing_features:
+            raise ValueError(f"Missing required features in data: {missing_features}")
+
+        try:
+            processed_data = self.data.copy()
+            processed_data = self._calculate_composite_scores(processed_data)
+
+            return {
+                'overall_top_products': self._get_overall_top_products(processed_data, overall_limit),
+                'top_products_by_category': self._get_category_top_products(processed_data, category_limit, products_per_category),
+                'similar_products': self._get_similar_products(processed_data, category_limit, similar_products_limit)
+            }
+        except Exception as e:
+            logger.error(f"Recommendation generation failed: {e}")
+            raise
+
+    def _validate_parameters(self, category_limit: int, products_per_category: int, overall_limit: int, similar_products_limit: int) -> None:
+        """Ensure input parameters are within valid ranges."""
+        limits = [category_limit, products_per_category, overall_limit, similar_products_limit]
+        if not all(isinstance(x, int) and x > 0 for x in limits):
+            raise ValueError("All limits must be positive integers")
+        if category_limit > 50 or products_per_category > 20 or overall_limit > 100:
+            raise ValueError("Exceeded maximum allowed limit values")
+
+    def _calculate_composite_scores(self, data: pd.DataFrame) -> pd.DataFrame:
+        """Calculate composite scores with weighted features."""
+        feature_weights = {'rating': 0.4, 'rating_count': 0.3, 'discount_percentage': 0.2, 'discounted_price': 0.1}
         scaler = MinMaxScaler()
-        scaled_features = scaler.fit_transform(self.data[features])
+        scaled_features = scaler.fit_transform(data[list(feature_weights.keys())])
+        scaled_features[:, list(feature_weights.keys()).index('discounted_price')] = 1 - scaled_features[:, list(feature_weights.keys()).index('discounted_price')]
+        data['composite_score'] = np.dot(scaled_features, np.array(list(feature_weights.values())))
+        return data
+
+    def _get_overall_top_products(self, data: pd.DataFrame, limit: int) -> List[Dict]:
+        """Get top products across all categories."""
+        return data.sort_values('composite_score', ascending=False).head(limit)[list(self._selected_columns())].to_dict('records')
+
+    def _get_category_top_products(self, data: pd.DataFrame, category_limit: int, products_per_category: int) -> Dict[str, List[Dict]]:
+        """Get top products organized by category."""
+        top_categories = data.groupby('category')['composite_score'].mean().sort_values(ascending=False).head(category_limit).index.tolist()
+        return {category: self._get_category_products(data, category, products_per_category) for category in top_categories}
+
+    def _get_category_products(self, data: pd.DataFrame, category: str, limit: int) -> List[Dict]:
+        """Get top products for a specific category."""
+        return data[data['category'] == category].sort_values('composite_score', ascending=False).head(limit)[list(self._selected_columns())].to_dict('records')
+
+    def _get_similar_products(self, data: pd.DataFrame, category_limit: int, limit: int) -> Dict[str, List[Dict]]:
+        """Get context-aware similar products."""
+        similar_products = {}
+        top_categories = data['category'].value_counts().head(category_limit).index.tolist()
+        for category in top_categories:
+            try:
+                seed_product = data[data['category'] == category].nlargest(1, 'composite_score').iloc[0]
+                recommendations = self.find_similar_products(seed_product['product_id'])
+                similar = [p for p in recommendations if p[0] != seed_product['product_id'] and self._get_product_category(p[0]) == category][:limit]
+                similar_products[category] = self._get_product_details([p[0] for p in similar])
+            except (IndexError, KeyError):
+                logger.warning(f"No products found for category: {category}")
+                similar_products[category] = []
+        return similar_products
+
+    def _selected_columns(self) -> set:
+        """Columns to include in output."""
+        return {'product_id', 'product_name', 'category', 'discounted_price', 'actual_price', 'discount_percentage', 'rating', 'rating_count', 'about_product', 'img_link'}
+
+    def _get_product_category(self, product_id: str) -> str:
+        """Helper to get category for a product ID."""
+        result = self.data[self.data['product_id'] == product_id]
+        if not result.empty:
+            return result.iloc[0]['category']
+        raise KeyError(f"Product ID {product_id} not found.")
+
+    def _get_product_details(self, product_ids: List[str]) -> List[Dict]:
+        """Retrieve details for a list of product IDs."""
+        return self.data[self.data['product_id'].isin(product_ids)][list(self._selected_columns())].to_dict('records')
+
         
-        # Invert discounted_price (lower price is better)
-        scaled_features[:, 3] = 1 - scaled_features[:, 3]
-        
-        # Compute composite scores
-        composite_scores = np.dot(scaled_features, weights)
-        self.data['composite_score'] = composite_scores
-        
-        # Select relevant columns
-        selected_columns = [
-            'product_id', 'product_name', 'category', 'discounted_price',
-            'actual_price', 'discount_percentage', 'rating', 'rating_count',
-            'about_product', 'img_link'
-        ]
-        
-        # Group by category and get top products
-        top_products = {}
-        for category, group in self.data.groupby('category'):
-            sorted_products = (
-                group.sort_values('composite_score', ascending=False)
-                .head(n)
-                [selected_columns]
-                .to_dict('records')
-            )
-            top_products[category] = sorted_products
-        
-        return top_products
-    
-    # Existing methods (find_similar_products, get_product_details, save_model, load_model) remain unchanged
-    # ... (refer to original code for these methods)
-        
-    def find_similar_products(self, product_id: str, n_recommendations: int = 10) -> List[Tuple[str, float]]:
+    def find_similar_products(self, product_id: str, n_recommendations: int = 12) -> List[Tuple[str, float]]:
         """Find similar products based on product ID."""
         try:
             # Find the index of the target product

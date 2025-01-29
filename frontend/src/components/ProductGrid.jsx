@@ -8,7 +8,7 @@ const ProductGrid = ({ products, onSelect, isLoggedIn }) => {
         <div
           key={product.product_id}
           onClick={() => isLoggedIn && onSelect(product)}
-          className={`bg-white rounded-xl shadow-md overflow-hidden cursor-pointer transform transition-all ₹{
+          className={`bg-white rounded-xl shadow-md overflow-hidden cursor-pointer transform transition-all ${
             isLoggedIn
               ? "hover:scale-105 hover:shadow-lg"
               : "opacity-75 cursor-not-allowed"
@@ -25,7 +25,7 @@ const ProductGrid = ({ products, onSelect, isLoggedIn }) => {
             </h3>
             <div className="mt-2 flex items-center justify-between">
               <span className="text-lg font-bold text-indigo-600">
-                ₹{product.discounted_price}
+                ${product.discounted_price}
               </span>
               <div className="flex items-center">
                 <span className="text-yellow-500">★</span>
@@ -37,7 +37,7 @@ const ProductGrid = ({ products, onSelect, isLoggedIn }) => {
             {product.discount_percentage > 0 && (
               <div className="mt-2 flex items-center">
                 <span className="line-through text-gray-400 mr-2">
-                  ₹{product.actual_price}
+                  ${product.actual_price}
                 </span>
                 <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-sm">
                   {product.discount_percentage}% off

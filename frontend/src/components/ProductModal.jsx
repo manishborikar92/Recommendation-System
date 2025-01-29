@@ -17,7 +17,7 @@ const ProductModal = ({
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm overflow-y-auto h-full w-full z-50">
-      <div className="relative bg-white rounded-xl mx-4 my-8 p-6 max-w-4xl lg:mx-auto animate-fade-in-up">
+      <div className="relative bg-white rounded-xl mx-4 my-8 p-6 max-w-5xl lg:mx-auto animate-fade-in-up">
         <button
           onClick={onClose}
           className="absolute top-4 right-4 p-2 hover:bg-gray-100 rounded-full transition-colors"
@@ -46,7 +46,7 @@ const ProductModal = ({
                 <p className="text-sm font-medium text-gray-500 mb-1">Price</p>
                 <div className="flex items-baseline gap-2">
                   <span className="text-3xl font-bold text-indigo-600">
-                    ₹{product.discounted_price}
+                    ${product.discounted_price}
                   </span>
                   {product.discount_percentage > 0 && (
                     <span className="text-sm font-medium text-green-600">
@@ -56,7 +56,7 @@ const ProductModal = ({
                 </div>
                 {product.actual_price > product.discounted_price && (
                   <p className="text-gray-400 line-through mt-1">
-                    ₹{product.actual_price}
+                    ${product.actual_price}
                   </p>
                 )}
               </div>
@@ -131,7 +131,7 @@ const ProductModal = ({
                     </h3>
                     <div className="flex items-center justify-between">
                       <span className="text-lg font-bold text-indigo-600">
-                        ₹{item.discounted_price}
+                        ${item.discounted_price}
                       </span>
                       <div className="flex items-center text-sm">
                         <span className="text-yellow-500">★</span>
@@ -143,7 +143,7 @@ const ProductModal = ({
                     {item.discount_percentage > 0 && (
                       <div className="mt-2 flex items-center justify-between">
                         <span className="line-through text-gray-400 text-sm">
-                          ₹{item.actual_price}
+                          ${item.actual_price}
                         </span>
                         <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs">
                           {item.discount_percentage}% off
