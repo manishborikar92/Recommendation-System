@@ -43,7 +43,7 @@ router.post('/register',
         { expiresIn: '1h' }
       );
 
-      res.status(201).json({ userId: user._id, token });
+      res.status(201).json({ userId: user._id, username, token });
 
     } catch (error) {
       console.error('Registration error:', error);
@@ -58,6 +58,7 @@ router.post('/login', async (req, res) => {
   
   try {
     const user = await User.findOne({ email }).select('+password');
+    const username = await User.findOne({ email }).select('username');
     if (!user) return res.status(401).json({ error: 'Invalid credentials' });
 
     const isValid = await bcrypt.compare(password, user.password);
@@ -69,7 +70,7 @@ router.post('/login', async (req, res) => {
       { expiresIn: '1h' }
     );
 
-    res.json({ userId: user._id, token });
+    res.json({ userId: user._id, username: username.username, token });
     
   } catch (error) {
     console.error('Login error:', error);
