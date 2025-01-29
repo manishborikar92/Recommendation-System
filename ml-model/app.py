@@ -1,9 +1,11 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 from pymongo import MongoClient
 import pandas as pd
 from utils.recommender import ProductRecommender
 
 app = Flask(__name__)
+CORS(app)
 
 # Load the model at startup
 recommender = ProductRecommender()
@@ -48,6 +50,14 @@ def recommend():
     # recommendations = recommender.find_similar_products(product_id)
 
     return jsonify({"recommended_products": recommendations})
+
+@app.route("/trending", methods=["GET"])
+def get_trending_products():
+    try:
+        top_products = recommender.get_top_products_per_category(n=10)
+        return jsonify(top_products)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
     app.run(port=5001, debug=True)

@@ -1,11 +1,13 @@
 # Steps to run /recommend api
 
 ```
-python3.10 -m venv .venv
+python -m venv .venv
+
+.venv\Scripts\activate
 
 pip install -r requirements.txt
 
-python -m pip freeze > requirements  
+python -m pip freeze > requirements.txt 
 
 python utils/preprocessing.py
 

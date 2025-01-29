@@ -3,7 +3,7 @@ import json
 import pickle
 import numpy as np
 import pandas as pd
-from typing import List, Tuple
+from typing import List, Tuple, Dict
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -23,7 +23,7 @@ class ProductRecommender:
         self.required_columns = [
             'product_id', 'product_name', 'category', 'discounted_price',
             'actual_price', 'discount_percentage', 'rating', 'rating_count',
-            'about_product', 'img_link'
+            'about_product', 'img_link', 'product_features'
         ]
     
     def validate_input_data(self, df: pd.DataFrame) -> None:
@@ -38,7 +38,6 @@ class ProductRecommender:
     def clean_numeric_value(self, value):
         """Clean numeric values by removing commas and converting to float."""
         if isinstance(value, str):
-            # Remove commas and convert to float
             try:
                 return float(value.replace(',', ''))
             except (ValueError, AttributeError):
@@ -49,12 +48,22 @@ class ProductRecommender:
         
     def preprocess_data(self, df: pd.DataFrame) -> None:
         """Preprocess the data and create feature matrix."""
-        # Validate input data
         self.validate_input_data(df)
-        
         self.data = df.copy()
         
-        # Convert product features to string if it's stored as JSON
+        # Clean numerical features and update self.data
+        numerical_features = [
+            'discounted_price', 'actual_price',
+            'discount_percentage', 'rating', 'rating_count'
+        ]
+        numerical_data = pd.DataFrame()
+        for feature in numerical_features:
+            numerical_data[feature] = self.data[feature].apply(self.clean_numeric_value)
+        
+        # Update self.data with cleaned numerical values
+        self.data[numerical_features] = numerical_data
+        
+        # Process text features
         def process_features(features):
             if isinstance(features, str):
                 try:
@@ -64,7 +73,6 @@ class ProductRecommender:
                     return features
             return str(features)
         
-        # Combine text features
         self.data['text_features'] = (
             self.data['product_name'].fillna('') + ' ' +
             self.data['category'].fillna('') + ' ' +
@@ -72,34 +80,54 @@ class ProductRecommender:
             self.data['product_features'].apply(process_features)
         )
         
-        # Create TF-IDF matrix for text features
+        # TF-IDF and numerical feature processing
         text_matrix = self.tfidf_vectorizer.fit_transform(self.data['text_features'])
+        scaled_numerical = self.scaler.fit_transform(numerical_data)
+        self.product_features_matrix = np.hstack([text_matrix.toarray(), scaled_numerical])
+        self.product_ids = self.data['product_id'].values
+    
+    def get_top_products_per_category(self, n: int = 10) -> Dict[str, List[Dict]]:
+        """Retrieve top N products in each category based on a composite score."""
+        if self.data is None:
+            raise ValueError("Data has not been preprocessed yet.")
         
-        # Prepare numerical features
-        numerical_features = [
-            'discounted_price',
-            'actual_price',
-            'discount_percentage',
-            'rating',
-            'rating_count'
+        # Features and their weights for composite score
+        features = ['rating', 'rating_count', 'discount_percentage', 'discounted_price']
+        weights = np.array([0.4, 0.3, 0.2, 0.1])
+        
+        # Normalize features
+        scaler = MinMaxScaler()
+        scaled_features = scaler.fit_transform(self.data[features])
+        
+        # Invert discounted_price (lower price is better)
+        scaled_features[:, 3] = 1 - scaled_features[:, 3]
+        
+        # Compute composite scores
+        composite_scores = np.dot(scaled_features, weights)
+        self.data['composite_score'] = composite_scores
+        
+        # Select relevant columns
+        selected_columns = [
+            'product_id', 'product_name', 'category', 'discounted_price',
+            'actual_price', 'discount_percentage', 'rating', 'rating_count',
+            'about_product', 'img_link'
         ]
         
-        # Clean and convert numerical features
-        numerical_data = pd.DataFrame()
-        for feature in numerical_features:
-            numerical_data[feature] = self.data[feature].apply(self.clean_numeric_value)
+        # Group by category and get top products
+        top_products = {}
+        for category, group in self.data.groupby('category'):
+            sorted_products = (
+                group.sort_values('composite_score', ascending=False)
+                .head(n)
+                [selected_columns]
+                .to_dict('records')
+            )
+            top_products[category] = sorted_products
         
-        # Scale numerical features
-        scaled_numerical = self.scaler.fit_transform(numerical_data)
-        
-        # Combine text and numerical features
-        self.product_features_matrix = np.hstack([
-            text_matrix.toarray(),
-            scaled_numerical
-        ])
-        
-        # Store product IDs for later reference
-        self.product_ids = self.data['product_id'].values
+        return top_products
+    
+    # Existing methods (find_similar_products, get_product_details, save_model, load_model) remain unchanged
+    # ... (refer to original code for these methods)
         
     def find_similar_products(self, product_id: str, n_recommendations: int = 10) -> List[Tuple[str, float]]:
         """Find similar products based on product ID."""
