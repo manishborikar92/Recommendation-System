@@ -260,23 +260,23 @@ def main():
         print("Saving model...")
         recommender.save_model('model/product_recommender_model.pkl')
         
-        # Example: Get recommendations for a product
-        example_product_id = "B095RTJH1M"
-        print(f"\nFinding recommendations for product ID: {example_product_id}")
-        recommendations = recommender.find_similar_products(example_product_id)
+        # # Example: Get recommendations for a product
+        # example_product_id = "B095RTJH1M"
+        # print(f"\nFinding recommendations for product ID: {example_product_id}")
+        # recommendations = recommender.find_similar_products(example_product_id)
         
-        if recommendations:
-            print(f"\nTop 10 similar products for product ID {example_product_id}:")
-            recommended_ids = [rec[0] for rec in recommendations]
-            recommended_products = recommender.get_product_details(recommended_ids)
+        # if recommendations:
+        #     print(f"\nTop 10 similar products for product ID {example_product_id}:")
+        #     recommended_ids = [rec[0] for rec in recommendations]
+        #     recommended_products = recommender.get_product_details(recommended_ids)
             
-            for (prod_id, similarity), (_, row) in zip(recommendations, recommended_products.iterrows()):
-                print(f"\nProduct ID: {prod_id}")
-                print(f"Similarity Score: {similarity:.4f}")
-                print(f"Name: {row['product_name']}")
-                print(f"Category: {row['category']}")
-                print(f"Price: ${row['discounted_price']}")
-                print(f"Rating: {row['rating']} ({row['rating_count']} reviews)")
+        #     for (prod_id, similarity), (_, row) in zip(recommendations, recommended_products.iterrows()):
+        #         print(f"\nProduct ID: {prod_id}")
+        #         print(f"Similarity Score: {similarity:.4f}")
+        #         print(f"Name: {row['product_name']}")
+        #         print(f"Category: {row['category']}")
+        #         print(f"Price: ${row['discounted_price']}")
+        #         print(f"Rating: {row['rating']} ({row['rating_count']} reviews)")
                 
     except FileNotFoundError:
         print(f"Error: Could not find the CSV file at {csv_file_path}")
