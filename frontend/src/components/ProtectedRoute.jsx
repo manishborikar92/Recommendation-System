@@ -5,9 +5,10 @@ import { Navigate, useLocation } from 'react-router-dom';
 const ProtectedRoute = ({ children }) => {
   const token = localStorage.getItem('token');
   const userId = localStorage.getItem('userId');
+  const username = localStorage.getItem('username');
   const location = useLocation();
 
-  if (!token || !userId) {
+  if (!token || !userId || !username) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 

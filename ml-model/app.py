@@ -42,9 +42,9 @@ def get_product_recommendations(product_id: str, recommender: ProductRecommender
 @app.route("/recommend", methods=["POST"])
 def recommend():
     data = request.json
-    username = data["username"]
+    userId = data["userId"]
     product_id = data["product_id"]
-    print(f"Received recommendation request for user {username} and product ID {product_id}")
+    print(f"Received recommendation request for user {userId} and product ID {product_id}")
 
     recommendations = get_product_recommendations(product_id, recommender)
     # recommendations = recommender.find_similar_products(product_id)

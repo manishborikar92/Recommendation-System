@@ -41,6 +41,7 @@ const AuthPage = ({ mode = 'login' }) => {
           });
           if (response.token && response.userId) {
             localStorage.setItem('userId', response.userId);
+            localStorage.setItem('username', response.username);
             localStorage.setItem('token', response.token);
             navigate('/');
           }
@@ -54,6 +55,7 @@ const AuthPage = ({ mode = 'login' }) => {
           });
           if (response.token && response.userId) {
             localStorage.setItem('userId', response.userId);
+            localStorage.setItem('username', response.username);
             localStorage.setItem('token', response.token);
             navigate('/');
           }
