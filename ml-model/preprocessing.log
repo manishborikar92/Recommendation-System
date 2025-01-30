@@ -1,0 +1,8 @@
+2025-01-31 02:32:59,720 - INFO - Starting data processing pipeline
+2025-01-31 02:32:59,722 - ERROR - Fatal error in processing pipeline: [Errno 2] No such file or directory: 'data/raw/Amazon-Products.csv'
+2025-01-31 02:33:46,564 - INFO - Starting data processing pipeline
+2025-01-31 02:33:46,593 - INFO - Processing chunk 1
+2025-01-31 02:37:24,309 - INFO - Chunk 1 completed. Valid rows: 509
+2025-01-31 02:37:24,325 - INFO - Processing chunk 2
+2025-01-31 02:39:55,334 - INFO - Chunk 2 completed. Valid rows: 757
+2025-01-31 02:39:55,367 - INFO - Processing chunk 3

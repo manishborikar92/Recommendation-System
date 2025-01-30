@@ -1,4 +1,4 @@
-# Steps to run /recommend api
+### Steps to run /recommend api
 
 ```
 python -m venv .venv
@@ -9,13 +9,25 @@ pip install -r requirements.txt
 
 python -m pip freeze > requirements.txt 
 
-python utils/preprocessing.py
+python data_preprocessing.py
 
-python utils/clean_csv.py
+python data_loader.py
 
-python utils/productdb.py
+uvicorn main:app --host 0.0.0.0 --port 8000
+```
 
-python utils/recommender.py
+### API Endpoints
+```
+GET /recommend?user_id=<USER_ID> → Returns 20 personalized products
+GET /similar?product_id=<PRODUCT_ID> → Returns 12 similar products
+```
 
-python app.py
+### Data Flow:
+```
+Frontend → API → [Authentication] → [Rate Limiting] → [Recommendation Engine]
+                   ↑                      |
+                   |                      ↓
+                   └── [User History] ← PostgreSQL
+                        [Product Data] ←─┘
+                        [ML Model] ←───┘
 ```
