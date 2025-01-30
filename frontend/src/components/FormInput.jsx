@@ -17,3 +17,4 @@ const FormInput = ({ label, error, ...props }) => {
 };
 
 export default FormInput;
+
