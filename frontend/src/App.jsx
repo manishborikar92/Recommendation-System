@@ -1,25 +1,31 @@
 // src/App.jsx
-import React from "react";
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import AuthPage from './components/AuthPage';
-import Home from "./pages/Home";
-import ProtectedRoute from './components/ProtectedRoute';
+import React from 'react';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
+import PrivateRoute from './components/PrivateRoute';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import PasswordReset from './pages/PasswordReset';
+import Dashboard from './pages/Dashboard';
+import ErrorBoundary from './components/ErrorBoundary';
 
 const App = () => {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={
-            <ProtectedRoute>
-              <Home />
-            </ProtectedRoute>
+    <ErrorBoundary>
+      <div className="min-h-screen bg-gray-50">
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/password-reset" element={<PasswordReset />} />
+          <Route path="/dashboard" element={
+            <PrivateRoute>
+              <Dashboard />
+            </PrivateRoute>
           } />
-        <Route path="/login" element={<AuthPage mode="login" />} />
-        <Route path="/register" element={<AuthPage mode="register" />} />
-        <Route path="/forgot-password" element={<AuthPage mode="forgot" />} />
-        <Route path="/reset-password" element={<AuthPage mode="reset" />} />
-      </Routes>
-    </BrowserRouter>
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        </Routes>
+      </div>
+    </ErrorBoundary>
   );
 };
 
