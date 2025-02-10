@@ -4,3 +4,6 @@ node_modules
 data
 __pycache__
 product_recommender_model.pkl
+model
+Development Prompts.md
+generatesecrete.py
