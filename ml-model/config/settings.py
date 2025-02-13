@@ -11,7 +11,7 @@ APP_VERSION = "0.1.0"
 
 # CORS Configuration
 ALLOWED_ORIGINS = [
-    "http://localhost:3000",  # React development server
+    "http://localhost:5173",  # React development server
     "https://yourdomain.com",  # Production domain
 ]
 

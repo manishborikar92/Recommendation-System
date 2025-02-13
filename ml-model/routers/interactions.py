@@ -52,7 +52,7 @@ async def log_interaction(event: InteractionEvent):
     try:
         # Use the DBInteractions class method to log the interaction
         await DBInteractions.log_interaction(
-            user_id=event.user_id,
+            user_id='u'+event.user_id,
             event_type=event.event_type,
             product_id=event.product_id,
             query_text=event.query
@@ -76,11 +76,11 @@ async def get_user_interactions(user_id: str, days: int = 30):
     """
     try:
         # Validate user_id format
-        if not re.match(r'^[a-zA-Z0-9]{1,50}$', user_id):
+        if not re.match(r'^[a-zA-Z0-9]{1,50}$', 'u'+user_id):
             raise ValueError('Invalid user_id format')
 
         # Fetch user interactions using DBInteractions class method
-        interactions = await DBInteractions.fetch_user_interactions(user_id, days)
+        interactions = await DBInteractions.fetch_user_interactions('u'+user_id, days)
         
         # Convert asyncpg.Record to dict for JSON serialization
         return [dict(interaction) for interaction in interactions]

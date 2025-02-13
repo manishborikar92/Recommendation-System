@@ -59,10 +59,9 @@ const validations = {
 
 // Helper functions
 const helpers = {
-  generateOTP: () => crypto.randomBytes(CONFIG.OTP_LENGTH)
-    .toString('hex')
-    .slice(0, CONFIG.OTP_LENGTH)
-    .toUpperCase(),
+  generateOTP: () => [...crypto.randomBytes(CONFIG.OTP_LENGTH)]
+    .map(byte => byte % 10)
+    .join(''),
 
   hashData: (data) => crypto
     .createHmac('sha256', process.env.OTP_SECRET)

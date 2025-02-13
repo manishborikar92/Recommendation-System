@@ -119,7 +119,7 @@ async def get_home_recommendations(
     
     # Fetch user interactions (last 30 days) asynchronously.
     try:
-        interactions = await DBInteractions.fetch_user_interactions(user_id, days=30)
+        interactions = await DBInteractions.fetch_user_interactions('u'+user_id, days=30)
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, 

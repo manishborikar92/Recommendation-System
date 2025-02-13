@@ -14,7 +14,11 @@ export const AuthProvider = ({ children }) => {
     const userData = localStorage.getItem('user');
     
     if (token && userData) {
-      setUser(JSON.parse(userData));
+      try {
+        setUser(JSON.parse(userData));
+      } catch (e) {
+        console.error("Invalid user data", e);
+      }
     }
     setLoading(false);
   }, []);
@@ -23,7 +27,7 @@ export const AuthProvider = ({ children }) => {
     setUser(userData);
     localStorage.setItem('token', token);
     localStorage.setItem('user', JSON.stringify(userData));
-    navigate('/dashboard');
+    navigate('/');
   };
 
   const logout = () => {
