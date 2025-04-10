@@ -34,7 +34,7 @@ async function sendOTPEmail(email, otp, expiryMinutes) {
     const html = template({ otp, expiryMinutes });
     
     await transport.sendMail({
-      from: `"Your App" <${process.env.EMAIL_FROM}>`,
+      from: `"Virtual Vangaurds" <${process.env.EMAIL_FROM}>`,
       to: email,
       subject: 'Your Verification Code',
       html,
