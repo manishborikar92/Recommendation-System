@@ -6,7 +6,8 @@ import RecommendationSection from '../components/RecommendationSection';
 import { useAuth } from '../context/AuthContext';
 
 const HomePage = () => {
-  const userId = localStorage.getItem('userId');
+  const { user } = useAuth();
+  const userId = user?.userId || localStorage.getItem('userId');
   
   const { data, isLoading, error } = useQuery({
     queryKey: ['home-recommendations'],
